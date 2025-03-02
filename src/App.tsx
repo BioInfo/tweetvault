@@ -1,15 +1,24 @@
 import React, { useState, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import Layout from './components/Layout';
 import SearchBar from './components/SearchBar';
-import { CollectionCard, CreateCollectionModal } from './components/CollectionCard';
+import { CollectionCard, CreateCollectionModal } from './components/CollectionCard.tsx';
 import { UserSettingsModal } from './components/UserSettingsModal.tsx';
 import InsightsDashboard from './components/InsightsDashboard';
-import { Tweet, Collection, SearchFilters, UserSettings, BulkAction } from './types';
+import { Tweet, Collection, SearchFilters, BulkAction } from './types';
 import { useAuth } from './lib/auth';
+import { useSettings } from './lib/settings-context';
 import AuthForm from './components/AuthForm';
-import { getUserSettings } from './lib/settings';
+import { TweetImporter } from './components/TweetImporter';
+import { TweetList } from './components/TweetList';
+import { saveTweets, addTweetToCollection, removeTweetFromCollection } from './lib/tweets';
+import { useToast } from './components/Toast';
 
 type ActiveView = 'dashboard' | 'search' | 'collections' | 'insights';
+
+interface AppProps {
+  view?: ActiveView;
+}
 
 const SAMPLE_TWEETS: Tweet[] = [
   {
@@ -63,10 +72,13 @@ const SAMPLE_COLLECTIONS: Collection[] = [
   }
 ];
 
-function App() {
+function App({ view: initialView = 'dashboard' }: AppProps) {
   const { user, loading } = useAuth();
+  const location = useLocation();
+  const { showToast } = useToast();
+  const { settings } = useSettings();
   const [tweets] = useState<Tweet[]>(SAMPLE_TWEETS);
-  const [collections] = useState<Collection[]>(SAMPLE_COLLECTIONS);
+  const [collections, setCollections] = useState<Collection[]>(SAMPLE_COLLECTIONS);
   const [selectedCollection, setSelectedCollection] = useState<Collection | null>(null);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [selectedTweets, setSelectedTweets] = useState<Set<string>>(new Set());
@@ -77,23 +89,14 @@ function App() {
     dateRange: null,
     minEngagement: null
   });
-  const [activeView, setActiveView] = useState<ActiveView>('dashboard');
-  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
-  const [userSettings, setUserSettings] = useState<UserSettings | null>(null);
-  const defaultSettings: UserSettings = {
-    theme: 'system',
-    defaultView: 'dashboard',
-    compactMode: false,
-    autoSummarize: true
-  };
+  
+  // Derive active view from current route
+  const pathname = location.pathname;
+  const activeView = (pathname.split('/')[1] || 'dashboard') as ActiveView;
 
-  useEffect(() => {
-    if (user) {
-      getUserSettings().then(settings => {
-        setUserSettings(settings || defaultSettings);
-      });
-    }
-  }, [user]);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [isImporterOpen, setIsImporterOpen] = useState(false);
+  const [selectedTweet, setSelectedTweet] = useState<Tweet | null>(null);
 
   // Get unique authors and topics for filters
   const uniqueAuthors = Array.from(new Set(tweets.map(tweet => tweet.authorUsername)));
@@ -146,32 +149,6 @@ function App() {
     setIsCreateModalOpen(false);
   };
 
-  const handleAddToCollection = (collectionId: string, tweetId: string) => {
-    setCollections(prev => prev.map(collection => {
-      if (collection.id === collectionId && !collection.tweetIds.includes(tweetId)) {
-        return {
-          ...collection,
-          tweetIds: [...collection.tweetIds, tweetId],
-          updatedAt: new Date().toISOString()
-        };
-      }
-      return collection;
-    }));
-  };
-
-  const handleRemoveFromCollection = (collectionId: string, tweetId: string) => {
-    setCollections(prev => prev.map(collection => {
-      if (collection.id === collectionId) {
-        return {
-          ...collection,
-          tweetIds: collection.tweetIds.filter(id => id !== tweetId),
-          updatedAt: new Date().toISOString()
-        };
-      }
-      return collection;
-    }));
-  };
-
   const handleBulkAction = (action: BulkAction) => {
     if (action.type === 'add' && action.targetCollectionId) {
       setCollections(prev => prev.map(collection => {
@@ -200,6 +177,70 @@ function App() {
     setSelectedTweets(new Set());
   };
 
+  const handleImportComplete = async (importedTweets: Tweet[]) => {
+    try {
+      // In a real implementation, we would save these to the database
+      // For now, we'll just add them to the local state
+      // const savedTweets = await saveTweets(importedTweets);
+      
+      // Add the imported tweets to the local state
+      // setTweets(prev => [...prev, ...savedTweets]);
+      
+      showToast(`Successfully imported ${importedTweets.length} tweets`, 'success');
+    } catch (error) {
+      console.error('Error importing tweets:', error);
+      showToast('Failed to import tweets', 'error');
+    }
+  };
+
+  const handleAddToCollection = async (tweetId: string, collectionId: string) => {
+    try {
+      // In a real implementation, we would save this to the database
+      // await addTweetToCollection(collectionId, tweetId);
+      
+      // Update the local state
+      setCollections(prev => prev.map(collection => {
+        if (collection.id === collectionId && !collection.tweetIds.includes(tweetId)) {
+          return {
+            ...collection,
+            tweetIds: [...collection.tweetIds, tweetId],
+            updatedAt: new Date().toISOString()
+          };
+        }
+        return collection;
+      }));
+      
+      showToast('Tweet added to collection', 'success');
+    } catch (error) {
+      console.error('Error adding tweet to collection:', error);
+      showToast('Failed to add tweet to collection', 'error');
+    }
+  };
+
+  const handleRemoveFromCollection = async (tweetId: string, collectionId: string) => {
+    try {
+      // In a real implementation, we would save this to the database
+      // await removeTweetFromCollection(collectionId, tweetId);
+      
+      // Update the local state
+      setCollections(prev => prev.map(collection => {
+        if (collection.id === collectionId) {
+          return {
+            ...collection,
+            tweetIds: collection.tweetIds.filter(id => id !== tweetId),
+            updatedAt: new Date().toISOString()
+          };
+        }
+        return collection;
+      }));
+      
+      showToast('Tweet removed from collection', 'success');
+    } catch (error) {
+      console.error('Error removing tweet from collection:', error);
+      showToast('Failed to remove tweet from collection', 'error');
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
@@ -217,10 +258,8 @@ function App() {
 
   return (
     <Layout
-      activeView={activeView}
-      onNavigate={setActiveView}
       onOpenSettings={() => setIsSettingsOpen(true)}
-      userSettings={userSettings || defaultSettings}
+      userSettings={settings}
     >
       <div className="max-w-4xl mx-auto">
         <div className="flex items-center justify-between mb-8">
@@ -239,81 +278,26 @@ function App() {
             </p>
           </div>
           {(activeView === 'dashboard' || activeView === 'search') && (
-            <div className="w-64">
-            <SearchBar
-              value={searchQuery}
-              onChange={setSearchQuery}
-              onClear={() => setSearchQuery('')}
-            />
-            </div>
+            <div className="flex items-center gap-4">
+              <div className="w-64">
+                <SearchBar
+                  value={searchQuery}
+                  onChange={setSearchQuery}
+                  onClear={() => setSearchQuery('')}
+                />
+              </div>
+              <button
+                onClick={() => setIsImporterOpen(true)}
+                className="px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-medium hover:bg-indigo-700 transition-colors"
+              >
+                Import Tweets
+              </button>
+            </div>  
           )}
         </div>
 
         {(activeView === 'dashboard' || activeView === 'search') && (
-          <>
-            {/* Search Filters */}
-            <div className="mb-6 bg-white p-4 rounded-xl border border-gray-200">
-              <div className="flex items-center gap-4 flex-wrap">
-                <div className="flex-1 min-w-[200px]">
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Topics</label>
-                  <select
-                    multiple
-                    value={searchFilters.topics}
-                    onChange={(e) => setSearchFilters(prev => ({
-                      ...prev,
-                      topics: Array.from(e.target.selectedOptions, option => option.value)
-                    }))}
-                    className="w-full rounded-lg border-gray-200 text-sm"
-                  >
-                    {uniqueTopics.map(topic => (
-                      <option key={topic} value={topic}>{topic}</option>
-                    ))}
-                  </select>
-                </div>
-                <div className="flex-1 min-w-[200px]">
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Authors</label>
-                  <select
-                    multiple
-                    value={searchFilters.authors}
-                    onChange={(e) => setSearchFilters(prev => ({
-                      ...prev,
-                      authors: Array.from(e.target.selectedOptions, option => option.value)
-                    }))}
-                    className="w-full rounded-lg border-gray-200 text-sm"
-                  >
-                    {uniqueAuthors.map(author => (
-                      <option key={author} value={author}>@{author}</option>
-                    ))}
-                  </select>
-                </div>
-                <div className="flex-1 min-w-[200px]">
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Min. Engagement</label>
-                  <input
-                    type="number"
-                    min="0"
-                    value={searchFilters.minEngagement || ''}
-                    onChange={(e) => setSearchFilters(prev => ({
-                      ...prev,
-                      minEngagement: e.target.value ? parseInt(e.target.value) : null
-                    }))}
-                    className="w-full rounded-lg border-gray-200 text-sm"
-                    placeholder="Enter minimum engagement"
-                  />
-                </div>
-                <button
-                  onClick={() => setSearchFilters({
-                    topics: [],
-                    authors: [],
-                    dateRange: null,
-                    minEngagement: null
-                  })}
-                  className="px-4 py-2 text-sm text-gray-600 hover:text-gray-900 transition-colors"
-                >
-                  Clear Filters
-                </button>
-              </div>
-            </div>
-
+          <div className="space-y-8">
             {/* Collections Grid */}
             <div className="mb-8">
               <div className="flex items-center justify-between mb-4">
@@ -343,128 +327,52 @@ function App() {
             </div>
 
             {/* Tweets List */}
-            <div className="space-y-4 mt-8">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-medium text-gray-900">All Tweets</h3>
-            <div className="flex items-center gap-4">
-              <p className="text-sm text-gray-500">
-                Showing {filteredTweets.length} of {tweets.length} tweets
-              </p>
-              {selectedTweets.size > 0 && (
-                <div className="flex items-center gap-2">
-                  <select
-                    className="text-sm border-gray-200 rounded-lg"
-                    onChange={(e) => {
-                      if (e.target.value) {
-                        handleBulkAction({
-                          type: 'add',
-                          targetCollectionId: e.target.value,
-                          tweetIds: Array.from(selectedTweets)
-                        });
-                      }
-                    }}
-                  >
-                    <option value="">Add to Collection...</option>
-                    {collections.map(collection => (
-                      <option key={collection.id} value={collection.id}>
-                        {collection.name}
-                      </option>
-                    ))}
-                  </select>
-                  <button
-                    onClick={() => setSelectedTweets(new Set())}
-                    className="text-sm text-gray-600 hover:text-gray-900"
-                  >
-                    Clear Selection ({selectedTweets.size})
-                  </button>
+            <div>
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-medium text-gray-900 dark:text-white">All Tweets</h3>
+                <div className="flex items-center gap-4">
+                  {selectedTweets.size > 0 && (
+                    <div className="flex items-center gap-2">
+                      <select
+                        className="text-sm border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800"
+                        onChange={(e) => {
+                          if (e.target.value) {
+                            handleBulkAction({
+                              type: 'add',
+                              targetCollectionId: e.target.value,
+                              tweetIds: Array.from(selectedTweets)
+                            });
+                          }
+                        }}
+                      >
+                        <option value="">Add to Collection...</option>
+                        {collections.map(collection => (
+                          <option key={collection.id} value={collection.id}>
+                            {collection.name}
+                          </option>
+                        ))}
+                      </select>
+                      <button
+                        onClick={() => setSelectedTweets(new Set())}
+                        className="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
+                      >
+                        Clear Selection ({selectedTweets.size})
+                      </button>
+                    </div>
+                  )}
                 </div>
-              )}
+              </div>
+              
+              <TweetList
+                tweets={filteredTweets}
+                collections={collections}
+                activeCollection={selectedCollection}
+                onAddToCollection={handleAddToCollection}
+                onRemoveFromCollection={handleRemoveFromCollection}
+                onSelectTweet={setSelectedTweet}
+              />
             </div>
           </div>
-
-          {filteredTweets.map((tweet) => (
-            <div
-              key={tweet.id}
-              className="bg-white rounded-xl p-6 shadow-sm border border-gray-200 hover:border-indigo-200 transition-colors"
-            >
-              <div className="flex items-start justify-between mb-3">
-                <div className="flex items-center gap-3">
-                  <img
-                    src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${tweet.authorUsername}`}
-                    alt={tweet.authorName}
-                    className="w-10 h-10 rounded-full bg-gray-100"
-                  />
-                  <div>
-                    <div className="font-medium text-gray-900">{tweet.authorName}</div>
-                    <div className="text-gray-500">@{tweet.authorUsername}</div>
-                  </div>
-                </div>
-                <div className="text-sm text-gray-500">
-                  {new Date(tweet.createdAt).toLocaleDateString()}
-                </div>
-              </div>
-
-              <p className="text-gray-800 mb-4">{tweet.text}</p>
-
-              <div className="flex flex-wrap gap-2 mb-4">
-                {tweet.aiTopics?.map((topic) => (
-                  <span
-                    key={topic}
-                    className="px-2 py-1 bg-indigo-50 text-indigo-700 text-sm rounded-full"
-                  >
-                    {topic}
-                  </span>
-                ))}
-              </div>
-
-              <div className="text-sm text-gray-500 bg-gray-50 p-3 rounded-lg">
-                <strong className="text-gray-700">AI Summary:</strong> {tweet.aiSummary}
-              </div>
-
-              <div className="flex gap-6 mt-4 text-sm text-gray-500">
-                <div>❤️ {tweet.metrics?.likes}</div>
-                <div>🔄 {tweet.metrics?.retweets}</div>
-                <div className="flex items-center gap-2">
-                  <div>💬 {tweet.metrics?.replies}</div>
-                  <input
-                    type="checkbox"
-                    checked={selectedTweets.has(tweet.id)}
-                    onChange={(e) => {
-                      const newSelected = new Set(selectedTweets);
-                      if (e.target.checked) {
-                        newSelected.add(tweet.id);
-                      } else {
-                        newSelected.delete(tweet.id);
-                      }
-                      setSelectedTweets(newSelected);
-                    }}
-                    className="ml-2"
-                  />
-                </div>
-                <div className="ml-auto">
-                  {selectedCollection ? (
-                    selectedCollection.tweetIds.includes(tweet.id) ? (
-                      <button
-                        onClick={() => handleRemoveFromCollection(selectedCollection.id, tweet.id)}
-                        className="text-red-600 hover:text-red-700 font-medium"
-                      >
-                        Remove from Collection
-                      </button>
-                    ) : (
-                      <button
-                        onClick={() => handleAddToCollection(selectedCollection.id, tweet.id)}
-                        className="text-indigo-600 hover:text-indigo-700 font-medium"
-                      >
-                        Add to Collection
-                      </button>
-                    )
-                  ) : null}
-                </div>
-              </div>
-            </div>
-          ))}
-            </div>
-          </>
         )}
 
         {activeView === 'collections' && (
@@ -497,8 +405,11 @@ function App() {
       <UserSettingsModal
         isOpen={isSettingsOpen}
         onClose={() => setIsSettingsOpen(false)}
-        settings={userSettings || defaultSettings}
-        onSave={setUserSettings}
+      />
+      <TweetImporter
+        isOpen={isImporterOpen}
+        onClose={() => setIsImporterOpen(false)}
+        onImportComplete={handleImportComplete}
       />
     </Layout>
   );

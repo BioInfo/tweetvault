@@ -1,24 +1,21 @@
 import React from 'react';
-import { Moon, Sun, Monitor } from 'lucide-react';
+import { Moon, Sun, Monitor, Loader, RotateCcw } from 'lucide-react';
+import { useSettings } from '../lib/settings-context';
 import { UserSettings } from '../types';
-import { updateUserSettings } from '../lib/settings';
+import { useToast } from './Toast';
 
 interface UserSettingsModalProps {
   isOpen: boolean;
   onClose: () => void;
-  settings: UserSettings;
-  onSave: (settings: UserSettings) => void;
 }
 
 export function UserSettingsModal({
   isOpen,
   onClose,
-  settings,
-  onSave
 }: UserSettingsModalProps) {
+  const { settings, updateSettings, resetSettings, loading, error } = useSettings();
   const [localSettings, setLocalSettings] = React.useState(settings);
-  const [loading, setLoading] = React.useState(false);
-  const [error, setError] = React.useState<string | null>(null);
+  const { showToast } = useToast();
 
   React.useEffect(() => {
     setLocalSettings(settings);
@@ -116,7 +113,28 @@ export function UserSettingsModal({
           </div>
         </div>
 
-        <div className="flex justify-end gap-3 mt-6">
+        <div className="flex justify-between items-center mt-6">
+          <button
+            onClick={async () => {
+              if (window.confirm('Are you sure you want to reset all settings to defaults?')) {
+                try {
+                  await resetSettings();
+                  setLocalSettings(settings);
+                  showToast('Settings reset to defaults', 'success');
+                } catch (err) {
+                  showToast('Failed to reset settings', 'error');
+                  console.error('Failed to reset settings:', err);
+                }
+              }
+            }}
+            disabled={loading}
+            className="flex items-center gap-1 px-3 py-2 text-gray-600 hover:text-gray-900 disabled:opacity-50"
+          >
+            <RotateCcw className="w-4 h-4" />
+            <span>Reset to Defaults</span>
+          </button>
+          
+          <div className="flex gap-3">
           <button
             onClick={onClose}
             className="px-4 py-2 text-gray-600 hover:text-gray-900 disabled:opacity-50"
@@ -126,26 +144,34 @@ export function UserSettingsModal({
           </button>
           <button
             onClick={async () => {
-              setLoading(true);
-              setError(null);
               try {
-                await updateUserSettings(localSettings);
-                onSave(localSettings);
-                onClose();
+                await updateSettings(localSettings);
+                showToast('Settings saved successfully!', 'success');
+                // Close modal after a short delay to show success message
+                setTimeout(() => {
+                  onClose();
+                }, 1500);
               } catch (err) {
-                setError('Failed to save settings');
-              } finally {
-                setLoading(false);
+                showToast('Failed to save settings', 'error');
+                console.error('Failed to save settings:', err);
               }
             }}
             disabled={loading}
             className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:opacity-50"
           >
-            {loading ? 'Saving...' : 'Save Changes'}
+            {loading ? (
+              <span className="flex items-center gap-2">
+                <Loader className="w-4 h-4 animate-spin" />
+                Saving...
+              </span>
+            ) : (
+              'Save Changes'
+            )}
           </button>
+          </div>
         </div>
         {error && (
-          <div className="mt-4 text-sm text-red-600">
+          <div className="mt-4 text-sm text-red-600 p-2 bg-red-50 rounded-lg">
             {error}
           </div>
         )}

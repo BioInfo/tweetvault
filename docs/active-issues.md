@@ -31,11 +31,11 @@ This document tracks active issues, tasks, and bugs in the TweetVault project. I
 ### [ISSUE-001] Implement Authentication Flow
 
 **Type**: Feature
-**Status**: Open
+**Status**: Resolved
 **Priority**: High
 **Created**: 2025-03-02
 **Updated**: 2025-03-02
-**Related Session**: [Initial Project Setup](./sessions/2025-03-02-initial-project-setup.md)
+**Related Session**: [Authentication and Routing Implementation](./sessions/2025-03-02-authentication-and-routing.md)
 
 #### Description
 Implement user authentication using Supabase Auth with email/password and Google OAuth providers. Create the necessary UI components and integration with the backend.
@@ -56,11 +56,11 @@ Implement user authentication using Supabase Auth with email/password and Google
 ### [ISSUE-002] Create Basic Layout Components
 
 **Type**: Feature
-**Status**: Open
+**Status**: Resolved
 **Priority**: High
 **Created**: 2025-03-02
 **Updated**: 2025-03-02
-**Related Session**: [Initial Project Setup](./sessions/2025-03-02-initial-project-setup.md)
+**Related Session**: [Authentication and Routing Implementation](./sessions/2025-03-02-authentication-and-routing.md)
 
 #### Description
 Create the basic layout components for the application, including header, navigation, and main content area. Implement responsive design using Tailwind CSS.
@@ -80,11 +80,11 @@ Create the basic layout components for the application, including header, naviga
 ### [ISSUE-003] Set Up Routing with React Router
 
 **Type**: Feature
-**Status**: Open
+**Status**: Resolved
 **Priority**: High
 **Created**: 2025-03-02
 **Updated**: 2025-03-02
-**Related Session**: [Initial Project Setup](./sessions/2025-03-02-initial-project-setup.md)
+**Related Session**: [Authentication and Routing Implementation](./sessions/2025-03-02-authentication-and-routing.md)
 
 #### Description
 Set up client-side routing using React Router. Define routes for all main sections of the application and implement protected routes for authenticated users.
@@ -104,10 +104,10 @@ Set up client-side routing using React Router. Define routes for all main sectio
 ### [ISSUE-004] Implement User Settings Storage
 
 **Type**: Feature
-**Status**: Open
+**Status**: Resolved
 **Priority**: Medium
 **Created**: 2025-03-02
-**Updated**: 2025-03-02
+**Updated**: 2025-03-03
 **Related Session**: [Initial Project Setup](./sessions/2025-03-02-initial-project-setup.md)
 
 #### Description
@@ -125,9 +125,74 @@ Implement storage and retrieval of user settings using Supabase. Create UI compo
 - Create a settings context provider
 - Implement optimistic updates for better UX
 
+### [ISSUE-005] Implement Tweet Collection Functionality
+
+**Type**: Feature
+**Status**: Open
+**Priority**: High
+**Created**: 2025-03-03
+**Updated**: 2025-03-03
+**Related Session**: [Initial Project Setup](./sessions/2025-03-02-initial-project-setup.md)
+
+#### Description
+Implement the core functionality for importing, saving, and organizing tweets. Create the necessary UI components and database integration for tweet collection management.
+
+#### Acceptance Criteria
+- User can import tweets from Twitter archive exports (JSON)
+- User can import tweets from other formats (CSV, markdown)
+- User can manually add tweets
+- Tweets are stored in the database with proper metadata
+- User can organize tweets into collections
+- User can view, edit, and delete collections
+- User can search and filter their saved tweets
+- AI-powered tagging and summarization of tweets
+- Privacy controls for handling sensitive information
+
+#### Notes
+- Use the tweets and collections tables in the database
+- Create parsers for different export formats
+- Implement privacy filters for sensitive information
+- Create reusable components for tweet display and collection management
+- Consider implementing batch operations for managing multiple tweets
+- Provide clear user guidance on obtaining and importing Twitter archives
+
 ## Resolved Issues
 
-*No resolved issues yet.*
+### [ISSUE-001] Implement Authentication Flow
+
+**Type**: Feature
+**Status**: Resolved
+**Priority**: High
+**Created**: 2025-03-02
+**Updated**: 2025-03-02
+**Related Session**: [Authentication and Routing Implementation](./sessions/2025-03-02-authentication-and-routing.md)
+
+### [ISSUE-002] Create Basic Layout Components
+
+**Type**: Feature
+**Status**: Resolved
+**Priority**: High
+**Created**: 2025-03-02
+**Updated**: 2025-03-02
+**Related Session**: [Authentication and Routing Implementation](./sessions/2025-03-02-authentication-and-routing.md)
+
+### [ISSUE-003] Set Up Routing with React Router
+
+**Type**: Feature
+**Status**: Resolved
+**Priority**: High
+**Created**: 2025-03-02
+**Updated**: 2025-03-02
+**Related Session**: [Authentication and Routing Implementation](./sessions/2025-03-02-authentication-and-routing.md)
+
+### [ISSUE-004] Implement User Settings Storage
+
+**Type**: Feature
+**Status**: Resolved
+**Priority**: Medium
+**Created**: 2025-03-02
+**Updated**: 2025-03-03
+**Related Session**: [Initial Project Setup](./sessions/2025-03-02-initial-project-setup.md)
 
 ## Deferred Issues
 

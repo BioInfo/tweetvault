@@ -1,27 +1,28 @@
 import React from 'react';
 import { BookMarked, Home, Search, FolderOpen, BarChart, Settings, LogOut, User, ChevronDown } from 'lucide-react';
+import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../lib/auth';
 import { UserSettings } from '../types';
+import { useTheme } from './ThemeProvider';
 
 type ActiveView = 'dashboard' | 'search' | 'collections' | 'insights';
 
 interface LayoutProps {
   children: React.ReactNode;
-  activeView: ActiveView;
-  onNavigate: (view: ActiveView) => void;
   onOpenSettings: () => void;
   userSettings: UserSettings;
 }
 
 export default function Layout({
   children,
-  activeView,
-  onNavigate,
   onOpenSettings,
   userSettings
 }: LayoutProps) {
-  const isDark = userSettings.theme === 'dark' ||
-    (userSettings.theme === 'system' && window?.matchMedia('(prefers-color-scheme: dark)').matches);
+  const { isDark } = useTheme();
+
+  const location = useLocation();
+  const pathname = location.pathname;
+  const activeView = pathname.split('/')[1] || 'dashboard';
 
   const { user, signOut } = useAuth();
   const [isProfileOpen, setIsProfileOpen] = React.useState(false);
@@ -104,29 +105,29 @@ export default function Layout({
           <NavItem
             icon={<Home className="w-5 h-5" />}
             label="Dashboard"
+            to="/dashboard"
             active={activeView === 'dashboard'}
-            onClick={() => onNavigate('dashboard')}
             isDark={isDark}
           />
           <NavItem
             icon={<Search className="w-5 h-5" />}
             label="Search"
+            to="/search"
             active={activeView === 'search'}
-            onClick={() => onNavigate('search')}
             isDark={isDark}
           />
           <NavItem
             icon={<FolderOpen className="w-5 h-5" />}
             label="Collections"
+            to="/collections"
             active={activeView === 'collections'}
-            onClick={() => onNavigate('collections')}
             isDark={isDark}
           />
           <NavItem
             icon={<BarChart className="w-5 h-5" />}
             label="Insights"
+            to="/insights"
             active={activeView === 'insights'}
-            onClick={() => onNavigate('insights')}
             isDark={isDark}
           />
         </div>
@@ -143,15 +144,15 @@ export default function Layout({
 interface NavItemProps {
   icon: React.ReactNode;
   label: string;
+  to: string;
   active?: boolean;
-  onClick: () => void;
   isDark: boolean;
 }
 
-function NavItem({ icon, label, active, onClick, isDark }: NavItemProps) {
+function NavItem({ icon, label, to, active, isDark }: NavItemProps) {
   return (
-    <button
-      onClick={onClick}
+    <Link
+      to={to}
       className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
         active ? 'bg-indigo-600 text-white' : isDark
           ? 'text-gray-400 hover:text-white hover:bg-gray-700'
@@ -160,6 +161,6 @@ function NavItem({ icon, label, active, onClick, isDark }: NavItemProps) {
     >
       {icon}
       {label}
-    </button>
+    </Link>
   );
 }

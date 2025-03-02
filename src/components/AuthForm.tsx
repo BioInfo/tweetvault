@@ -2,8 +2,12 @@ import React, { useState } from 'react';
 import { Chrome } from 'lucide-react';
 import { useAuth } from '../lib/auth';
 
-export default function AuthForm() {
-  const [isSignUp, setIsSignUp] = useState(false);
+interface AuthFormProps {
+  isSignUp?: boolean;
+}
+
+export default function AuthForm({ isSignUp: initialIsSignUp = false }: AuthFormProps) {
+  const [isSignUp, setIsSignUp] = useState(initialIsSignUp);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const { signIn, signUp, signInWithGoogle, error } = useAuth();
