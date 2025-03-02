@@ -1,8 +1,13 @@
 # TweetVault
 
-TweetVault is an AI-powered Twitter bookmark manager that helps users organize, search, and analyze their Twitter bookmarks. The application allows users to import their Twitter bookmarks, automatically categorize and summarize them using AI, and provides powerful search and organization tools.
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![GitHub issues](https://img.shields.io/github/issues/BioInfo/tweetvault)](https://github.com/BioInfo/tweetvault/issues)
+[![GitHub stars](https://img.shields.io/github/stars/BioInfo/tweetvault)](https://github.com/BioInfo/tweetvault/stargazers)
+[![Maintenance](https://img.shields.io/badge/Maintained%3F-yes-green.svg)](https://github.com/BioInfo/tweetvault/graphs/commit-activity)
+[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](./CONTRIBUTING.md)
+[![Buy Me A Coffee](https://img.shields.io/badge/Buy%20Me%20A%20Coffee-support-yellow.svg)](https://buymeacoffee.com/justinhjohnson)
 
-![TweetVault Logo](https://via.placeholder.com/800x400?text=TweetVault)
+TweetVault is an AI-powered Twitter bookmark manager that helps users organize, search, and analyze their Twitter bookmarks. The application allows users to import their Twitter bookmarks, automatically categorize and summarize them using AI, and provides powerful search and organization tools.
 
 ## Features
 
@@ -76,7 +81,7 @@ We welcome contributions to TweetVault! Please see our [Contributing Guidelines]
 
 If you find TweetVault useful, consider supporting the project:
 
-- [Buy Me a Coffee](https://www.buymeacoffee.com/tweetvault)
+- [Buy Me a Coffee](https://buymeacoffee.com/justinhjohnson)
 - Star the repository on GitHub
 - Contribute to the codebase
 
